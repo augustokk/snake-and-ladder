@@ -1,0 +1,378 @@
+
+// To run this code is necessary to pass 2 arguments (2 integers being 1, 2 or 3)
+// Program will check if correct number of parameters is passed and if are in the range
+// a menu will be prompt at the console, if you select the option 1 you will check the rules of the game
+// if you press 2 you start the game rolling a dice, you need to keep running the dice until finish the game
+// at any stage you can type 3 to finish the Program
+// the player progress will be printed to a file called My_game.txt
+
+#include<stdio.h>
+#include<stdlib.h>
+#include <time.h>
+int random_dice_value() //function to determine random value of dice
+{  
+    int i;  
+    time_t t1; // time variable  
+ 	int dice_value; // store the random value for dice
+      
+    // define the random number generator
+    srand ( (unsigned) time (&t1)); // pass the srand() parameter  
+    
+    for (i = 0; i <1; i++)  
+    {  // dice value can only be between 1-6
+    	A:dice_value = rand() % 7; 
+    	if(dice_value == 0){ // if got value 0, do it again
+    		goto A;}
+    	else{
+    		return dice_value;} //the function return the dice value (1-6)
+    }  
+}
+
+
+int random_snake_ladder_size() //function to determine random value of snake and ladder
+{  
+    int i;  
+    time_t t1; // time variable  
+ 	int random_size;  // store the random value for snake and ladder
+      
+    //define the random number generator  
+    srand ( (unsigned) time (&t1)); // pass the srand() parameter  
+    
+    for (i = 0; i <1; i++)  
+    {  // snake or ladder value can only be between 1-10
+    	A:random_size = rand() % 11;
+    	if(random_size == 0){// if got value 0, do it again
+    		goto A;}
+    	else{
+    		return random_size; }//the function return the snake or ladder value (1-10)
+    }  
+}
+
+
+int board_size() //function to determine random value for board
+{  
+    int i;  
+    time_t t1; // declare time variable  
+ 	int size;
+    int lowerLimit = 36, upperLimit = 64; //define the limits
+    /* define the random number generator */  
+    srand ( (unsigned) time (&t1)); // pass the srand() parameter  
+    
+    for (i = 0; i <1; i++)  
+    {  
+    	A:size =  lowerLimit + rand() % (upperLimit - lowerLimit);
+    	// because we set our line with value 4, the random values of a board need to be multiple of 4
+    	// I needed to do like that because otherwise when the values was out of the scope my program was crashing
+    	if(size == 32 || size == 36 || size == 40 || size == 44
+    	|| size == 48 || size == 52 || size == 56 || size == 60 || size == 64)
+    		return size; //the function return a random board value
+    	// if value is not in our selection, do it again
+    	else
+    		goto A;
+    }  
+}
+
+
+int user_input_ladder_snake() // collect user input for number of snakes and ladders
+{
+    int number_of_ladder_snake;
+
+    scanf("%d", &number_of_ladder_snake);  // user-defined number of snakes and ladders
+    
+    return number_of_ladder_snake; //the function return a integer value given by the user
+}
+
+
+int validation_ladder_snake(int argument_value) // validate the user input from line argument (error checking)
+{
+    int user_input = 0;
+    user_input = argument_value; //get the argument value;
+     while (!((user_input <= 3) && (user_input >= 1))) { // check if the user input is inside of a range
+        printf("[ERROR] The number you entered as arguments is out of range "
+        "\nPlease try a number inside of the range (1-3)\n");
+        user_input = user_input_ladder_snake(); // user-defined number of ladders and snakes
+    }
+    return user_input; //the function return a integer value given by the user, now validated
+    
+}
+
+int start_snake_ladder(int start, int finish) { // function to determine a random area where the snake head / ladder bottom  will be allocated
+    int specific_square;
+    specific_square = start + (rand() % (finish - start + 1));
+    return specific_square; // function return a specific position (integer) based on range given
+}
+
+void display_board(int current_position,char player[4], int board){ // function to display the board at console and player progress
+    int i; // counter for lines
+    int j; // counter for column
+    int total; // total spaces
+    total = board;
+    int line = 4; // set number of lines to be 4
+    int division = board/line;
+    int remaind = board%line;
+    int col = division + remaind;
+    int cursor; // cursor
+    int next=0;
+    int position_value_board; // hold values of board to be printed
+	if(current_position==board){ // that determines the final postion of the game
+	    // if player gets to final position print a message at output and close the program
+		printf("Player wins!!! \nYou can access full report on My_game.txt");
+		exit(0);}
+	
+	for(i=line;i>0;i--){ // line loop
+		int t=i-1;
+		if((next%2)==0){ // check if is even
+			cursor=0; // set direction
+			for(j=col;j>=1;j--){ // column loop
+			   position_value_board=(i*j)+(t*cursor++); // set the values for the board
+				if(current_position==position_value_board){
+					printf("%s\t",player);} // player position
+				else{
+				    printf("%d\t",position_value_board);}// board values
+			}next++;}
+			
+		else{
+			cursor=col-1; //change direction
+			for(j=1;j<=col;j++){ // column loop
+				position_value_board=(i*j)+(t*cursor--); // set the values for the board
+				if(current_position==position_value_board){
+					printf("%s\t",player);} // player position
+				else{
+					printf("%d\t",position_value_board);}// board values
+			}next++;}
+		printf("\n");
+	}
+}
+
+void main(int argc, char* argv[]){   
+    if (argc != 3){ // error checking to detect if number of arguments passed is correct
+        printf("Please enter only 2 arguments after executable name "
+        "\n (first argument for number of ladder)"
+        "\n (second argument for number of snake)"
+        "\n both numbers should be inside of the range (1-3)\n");
+        return;
+    }
+
+    printf("******************\n \n");
+    printf("SNAKES AND LADDERS\n \n");
+    printf("******************\n \n");
+    
+    // pointer to my file
+    FILE *my_file;
+    // opening file in writing mode
+    my_file = fopen("My_game.txt", "w");
+    // error checking
+    if (my_file == NULL) {
+        printf("Error!");
+        exit(1);
+    }
+    
+    int board = board_size(); // initalise a new board of random length
+	char user_input;
+    int i;
+	int snake_size; // random size of snake
+	int ladder_size; // random size of ladder
+	int dice_value; // random value for the dice
+	int cur_pos=0;
+	int current_position=1;
+	int previous_position;
+	
+    int number_ladder = atoi(argv[1]);   // receive a number of ladder as command line argument
+    number_ladder = validation_ladder_snake(number_ladder); // validate it
+    printf("You selected %d as number of ladders\n", number_ladder); // output a message to show number of ladder selected by user
+    
+    int number_snake = atoi(argv[2]);  // receive a number of snake as command line argument
+    number_snake = validation_ladder_snake(number_snake); // validate it
+    printf("You selected %d as number of snakes\n", number_snake); // output a message to show number of snake selected by user
+    
+    int number_attempt=0;
+    // menu of the program game
+	printf("\nChoose your option\n");
+	printf("1. Understand the game\n");
+	while(1)
+	{	// piece of menu to be repeated after each round
+		printf("2. Play the game\n");
+		printf("3. Exit\n");
+		// collect user input
+		scanf("%s",&user_input);
+	   
+		switch(user_input)
+		{
+			// print instructions of the game if user select that option
+			case '1':
+			printf("\n The rules are simple:"
+			 "\n Press 2 to play the game"
+			 "\n If you land on a snake you will move down the board"
+			 "\n If you land on a ladder then you will move up it"
+			 "\n To win you must land on last position exactly"
+			 "\n Otherwise you will need play again"
+			 "\n Good Luck"
+			 "\n ***EXTRA TIP***"
+			 "\n 1(ladder) is for hard mode"
+             "\n 2(ladders) is for medium mode"
+             "\n 3(ladders) is for easy mode"
+             "\n\n 1(snake) is for easy mode"
+             "\n 2(snake) is for medium mode"
+             "\n 3(snake) is for hard mode"
+			 "\n You can access full report on My_game.txt after the game\n\n");
+			 dice_value = random_dice_value();
+			 cur_pos += dice_value;
+				break;
+				
+			// play the game if user select that option	
+			case '2':
+			        dice_value = random_dice_value(); // random value for dice
+			        number_attempt = number_attempt + 1; // check number of attempts to finish the game
+				    snake_size = random_snake_ladder_size(); // random value for size of snake
+			        ladder_size = random_snake_ladder_size(); // random value for size of ladder
+			        previous_position = current_position; // store previous position 
+					current_position += dice_value; // update the new postion after dice roll
+					if(current_position < board + 1){ // check if is inside of the board
+					
+                        // to a better positioning of snakes and ladders, the gameplay is divided based on 
+                        // the random size of the board and number of snakes and ladders selected by the user
+                        // *** SMALL BOARD SIZE
+					    if (board < 50){
+					        
+					        // *** SNAKE RANDOM POSITIONING
+					        if (number_snake > 0){ // if user select 3 snakes
+					            // determine where is the head of snake
+        						if(current_position == start_snake_ladder(21, 23)){ // determine a range where a snake head can start
+        						    // send the player back to the tail of snake
+        						    current_position = current_position - snake_size;
+        						    // print a message to show the user hit the snake and how many steps need to return
+        						    printf("YOU FOUND A SNAKE GO BACK %d steps \n", snake_size);
+        						    // save the output message into file
+        						    fprintf(my_file, "YOU FOUND A SNAKE GO BACK %d steps \n", snake_size); }
+        					if (number_snake >1){ // if user select 2 snakes
+    					        // same idea as previous with a different position for snake head 
+        						if(current_position == start_snake_ladder(13, 15)){
+        						    current_position = current_position - snake_size;
+        						    printf("YOU FOUND A SNAKE GO BACK %d steps \n", snake_size);
+        						    fprintf(my_file, "YOU FOUND A SNAKE GO BACK %d steps \n", snake_size); }
+        					if (number_snake >= 3){ // if user select 1 snake
+        						// same idea as previous with a different position for snake head    
+        						if(current_position == start_snake_ladder(29, 31)){
+        						    current_position = current_position - snake_size;
+        						    printf("YOU FOUND A SNAKE GO BACK %d steps \n", snake_size);
+        						    fprintf(my_file, "YOU FOUND A SNAKE GO BACK %d steps \n", snake_size); }
+					        }
+					        }
+					        }
+					        
+					        // *** LADDER RANDOM POSITIONING
+					        // same idea as previous (snakes) but now we are setting the ladder positions
+        					// we will consider a range to determine the bottom of ladder in this scenario
+					        if (number_ladder > 0){ // if user select 3 ladders
+        						if(current_position == start_snake_ladder(9, 12)){// determine a range where a ladder bottom can start
+        						    // send the player up to the top of the ladder
+        						    current_position = current_position + ladder_size;
+        						    // print a message to show the user hit the ladder and how many steps need to go up
+        						    printf("YOU FOUND A LADDER GO UP %d steps \n", ladder_size);
+        						     // save the output message into file
+        						    fprintf(my_file, "YOU FOUND A LADDER GO UP %d steps \n", ladder_size); }
+        					if (number_ladder >1){ // if user select 2 ladders  
+        						// same as previous with a different position for ladder bottom
+        						if(current_position == start_snake_ladder(2, 4)){
+        						    current_position = current_position + ladder_size;
+        						    printf("YOU FOUND A LADDER GO UP %d steps \n", ladder_size);
+        						    fprintf(my_file, "YOU FOUND A LADDER GO UP %d steps \n", ladder_size); }
+        				    if (number_ladder >= 3){ // if user select 1 ladder
+    						    // same as previous with a different position for ladder bottom
+        						if(current_position == start_snake_ladder(19, 22)){
+        						    current_position = current_position + ladder_size;
+        						    printf("YOU FOUND A LADDER GO UP %d steps \n", ladder_size);
+        						   fprintf(my_file, "YOU FOUND A LADDER GO UP %d steps \n", ladder_size); }
+        				    }
+        					}
+					        }
+    						   
+    						// if player gets to final position save the output message into file
+    					    if(current_position == board){
+    			                fprintf(my_file,"**Congratulations** Player wins\n"
+    			                                "Your total play times was %d\n", number_attempt);
+    					    }
+    						else{
+    						    //normal movement
+    							display_board(current_position,"PLAYER", board);}
+					    }
+					    
+					    // *** LARGE BOARD SIZE
+					    if (board > 50){
+					        
+					         // *** SNAKE RANDOM POSITIONING
+    					    // *** same ideas applied here but now in a scenario of a large board size
+    					    if (number_snake > 0){ // if user select 3 snakes
+        						if(current_position == start_snake_ladder(33, 35)){
+        						    current_position = current_position - snake_size;
+        						    printf("YOU FOUND A SNAKE GO BACK %d steps \n", snake_size);
+        						    fprintf(my_file, "YOU FOUND A SNAKE GO BACK %d steps \n", snake_size); }
+        					if (number_snake >1){ // if user select 2 snakes  
+        						if(current_position == start_snake_ladder(17, 19)){
+        						    current_position = current_position - snake_size;
+        						    printf("YOU FOUND A SNAKE GO BACK %d steps \n", snake_size);
+        						    fprintf(my_file, "YOU FOUND A SNAKE GO BACK %d steps \n", snake_size); }
+        				   if (number_snake >= 3){ // if user select 1 snake	    
+        						if(current_position == start_snake_ladder(49, 51)){
+        						    current_position = current_position - snake_size;
+        						    printf("YOU FOUND A SNAKE GO BACK %d steps \n", snake_size);
+        						    fprintf(my_file, "YOU FOUND A SNAKE GO BACK %d steps \n", snake_size); }
+        				    }
+        					}
+    					    }
+        					
+        					// *** LADDER RANDOM POSITIONING
+    					    // *** same ideas applied here but now in a scenario of a large board size	    
+        					if (number_ladder > 0){ // if user select 3 ladders
+        						if(current_position == start_snake_ladder(18, 20)){
+        						    current_position = current_position + ladder_size;
+        						    printf("YOU FOUND A LADDER GO UP %d steps \n", ladder_size);
+        						    fprintf(my_file, "YOU FOUND A LADDER GO UP %d steps \n", ladder_size); }
+        					if (number_ladder > 1){ // if user select 2 ladders 
+        						if(current_position == start_snake_ladder(2, 4)){
+        						    current_position = current_position + ladder_size;
+        						    printf("YOU FOUND A LADDER GO UP %d steps \n", ladder_size);
+        						    fprintf(my_file, "YOU FOUND A LADDER GO UP %d steps \n", ladder_size); }
+        					if (number_ladder >= 3){// if user select 1 ladder
+        						if(current_position == start_snake_ladder(34, 36)){
+        						    current_position = current_position + ladder_size;
+        						    printf("YOU FOUND A LADDER GO UP %d steps \n", ladder_size);
+        						   fprintf(my_file, "YOU FOUND A LADDER GO UP %d steps \n", ladder_size); }
+        					}
+        					}
+        					}
+    						// if player gets to final position save the output message into file
+    					    if(current_position == board){
+    			                fprintf(my_file,"**Congratulations** Player wins\n"
+    			                                "Your total play times was %d\n", number_attempt);
+    					    }
+    						else{
+    						    //normal movement
+    							display_board(current_position,"PLAYER", board);
+    						}
+					    }
+					}
+					else{
+						current_position -= dice_value;
+						display_board(current_position,"PLAYER", board);
+					}
+					// each round the dice is playes a message outputs his previous position, the value it gets on dice, new position and number of attempts
+					printf("Started from: %d \nThe Dice value: %d \nNow position is: %d\nThis is your %d attempt \n\n ",previous_position, dice_value, current_position, number_attempt);
+					// same output message is also stored in the file
+					fprintf(my_file, "Started from: %d \nThe Dice value: %d \nNow position is: %d\nThis is your %d attempt \n\n",previous_position, dice_value, current_position, number_attempt);
+				break;
+			
+			// exit the program if user select that option	
+			case '3':exit(0);
+				break;
+
+            
+            // error handling  if usr type a wrong option
+			default:printf("Incorrect choice.Try Again\n");
+		}
+	}
+// closing the file
+fclose(my_file);
+}
+
+
